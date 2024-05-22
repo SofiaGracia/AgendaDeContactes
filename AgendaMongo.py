@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import tkinter as tk
 from tkinter import messagebox
 from pymongo import MongoClient
@@ -16,8 +17,9 @@ class VentanaInicio:
         self.boton_ingresar = tk.Button(ventana, text="Ingresar", command=self.abrir_agenda)
         self.boton_ingresar.grid(row=1, columnspan=2)
 
-        # Conexión a la base de datos MongoDB
-        self.cliente = MongoClient("localhost", 27017, username="admin", password="admin")
+        # Conexión a la base de datos MongoDB con usuario no administrador
+        # Autenticar en la base de datos "agenda"
+        self.cliente = MongoClient("localhost", 27017, username="usuario", password="password_seguro", authSource="agenda")
         self.db = self.cliente["agenda"]
         self.collection = self.db["contactos"]
 
@@ -65,19 +67,15 @@ class AgendaApp:
         nombre = self.entry_nombre.get()
         telefono = self.entry_telefono.get()
 
-        # Verificar si el nombre ya existe para este usuario
         contacto_existente = self.collection.find_one({"nombre": nombre, "usuario": self.nombre_usuario})
         if contacto_existente:
             messagebox.showerror("Error", "El contacto ya existe")
         else:
-            # Insertar un nuevo contacto en la base de datos para este usuario
             self.collection.insert_one({"nombre": nombre, "telefono": telefono, "usuario": self.nombre_usuario})
             messagebox.showinfo("Éxito", "Se ha creado el contacto")
 
     def consultar_contacto(self):
         nombre = self.entry_nombre.get()
-
-        # Consultar un contacto por nombre para este usuario
         contacto = self.collection.find_one({"nombre": nombre, "usuario": self.nombre_usuario})
         if contacto:
             messagebox.showinfo("Contacto", f"Nombre: {contacto['nombre']}\nTeléfono: {contacto['telefono']}")
@@ -86,11 +84,8 @@ class AgendaApp:
 
     def borrar_contacto(self):
         nombre = self.entry_nombre.get()
-
-        # Verificar si el contacto existe antes de borrarlo
         contacto_existente = self.collection.find_one({"nombre": nombre, "usuario": self.nombre_usuario})
         if contacto_existente:
-            # Borrar el contacto y su teléfono correspondiente para este usuario
             self.collection.delete_one({"nombre": nombre, "usuario": self.nombre_usuario})
             messagebox.showinfo("Éxito", "Se ha borrado el contacto y su teléfono correspondiente")
         else:
@@ -99,11 +94,8 @@ class AgendaApp:
     def modificar_telefono(self):
         nombre = self.entry_nombre.get()
         nuevo_telefono = self.entry_telefono.get()
-
-        # Verificar si el contacto existe antes de modificar el teléfono
         contacto_existente = self.collection.find_one({"nombre": nombre, "usuario": self.nombre_usuario})
         if contacto_existente:
-            # Modificar el teléfono del contacto existente para este usuario
             self.collection.update_one({"nombre": nombre, "usuario": self.nombre_usuario}, {"$set": {"telefono": nuevo_telefono}})
             messagebox.showinfo("Éxito", "Se ha modificado el teléfono del contacto")
         else:
@@ -116,3 +108,4 @@ if __name__ == "__main__":
     ventana_inicio = tk.Tk()
     app = VentanaInicio(ventana_inicio)
     ventana_inicio.mainloop()
+
