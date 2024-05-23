@@ -45,3 +45,7 @@ sudo systemctl start mongod
 sudo systemctl enable mongod
 
 ## 3. Descargar y ejecutar el script AgendaMono.py
+
+## 4. username: usuario, password: password_seguro y authSource: agenda
+
+## Puerto del contenedor: 27017
